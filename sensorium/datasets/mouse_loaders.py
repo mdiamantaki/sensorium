@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from nnfabrik.utility.nn_helpers import set_random_seed
 from neuralpredictors.data.datasets import StaticImageSet, FileTreeDataset
+from .utility import get_oracle_dataloader
 
 from neuralpredictors.data.transforms import (
     Subsample,
@@ -50,6 +51,7 @@ def static_loader(
     include_px_position=None,
     image_reshape_list=None,
     trial_idx_selection=None,
+    return_test_sampler: bool = False,
 ):
     """
     returns a single data loader
@@ -74,6 +76,7 @@ def static_loader(
         select_input_channel (int, optional): Only for color images. Select a color channel
         file_tree (bool, optional): whether to use the file tree dataset format. If False, equivalent to the HDF5 format
         image_condition (str, or list of str, optional): selection of images based on the image condition
+        return_test_sampler (bool, optional): whether to return only the test loader with repeat-batches
 
     Returns:
         if get_key is False returns a dictionary of dataloaders for one dataset, where the keys are 'train', 'validation', and 'test'.
@@ -201,7 +204,17 @@ def static_loader(
     elif "GrayImageNet" in path:
         data_key = path.split("static")[-1].split("-GrayImageNet")[0]
     else:
-        data_key = f"{dat.neurons.animal_ids[0]}-{dat.neurons.sessions[0]}-{dat.neurons.scan_idx[0]}"
+        data_key = f"{dat.neurons.animal_id[0]}-{dat.neurons.session[0]}-{dat.neurons.scan_idx[0]}"
+        
+    if return_test_sampler:
+        dataloader = get_oracle_dataloader(
+            dat,
+            image_condition=image_condition,
+            file_tree=file_tree,
+            data_key=data_key,
+            trial_idx_selection=trial_idx_selection,
+        )
+        return dataloader
 
     # subsample images
     dataloaders = {}
@@ -308,6 +321,7 @@ def static_loaders(
     include_px_position=None,
     image_reshape_list=None,
     trial_idx_selection=None,
+    return_test_sampler: bool = None,
 ):
     """
     Returns a dictionary of dataloaders (i.e., trainloaders, valloaders, and testloaders) for >= 1 dataset(s).
@@ -343,9 +357,10 @@ def static_loaders(
     if seed is not None:
         set_random_seed(seed)
     dls = OrderedDict({})
-    keys = [tier] if tier else ["train", "validation", "test", "final_test"]
-    for key in keys:
-        dls[key] = OrderedDict({})
+    if not return_test_sampler:
+        keys = [tier] if tier else ["train", "validation", "test"]
+        for key in keys:
+            dls[key] = OrderedDict({})
     neuron_ids = [neuron_ids] if neuron_ids is None else neuron_ids
     image_ids = [image_ids] if image_ids is None else image_ids
     trial_idx_selection = (
@@ -390,8 +405,13 @@ def static_loaders(
             include_px_position=include_px_position,
             image_reshape_list=image_reshape_list,
             trial_idx_selection=trial_idx_selection,
+            return_test_sampler=return_test_sampler,
         )
-        for k in dls:
-            dls[k][out[0]] = out[1][k]
-
+        
+        if not return_test_sampler:
+            for k in dls:
+                dls[k][out[0]] = out[1][k]
+        else:
+            dls.update(out)
+            
     return dls

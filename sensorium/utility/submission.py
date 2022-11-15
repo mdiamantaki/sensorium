@@ -67,7 +67,7 @@ def get_data_filetree_loader(filename=None, dataloader=None, tier="test"):
 
     neuron_ids = dat.neurons.unit_ids.tolist()
     tiers = dat.trial_info.tiers
-    complete_image_ids = dat.trial_info.frame_image_id
+    complete_image_ids = dat.trial_info.image_id
     complete_trial_idx = dat.trial_info.trial_idx
 
     trial_indices, responses, image_ids = [], [], []
