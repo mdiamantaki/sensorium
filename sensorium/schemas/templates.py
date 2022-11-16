@@ -281,7 +281,7 @@ class ScoringTable(ScoringBase):
 
     def make(self, key):
 
-        dataloaders = self.get_dataloaders(key=key)
+        dataloaders = self.dataset_table().get_dataloader(key=key)
         print(dataloaders)
         model = self.get_model(key=key)
         unit_measures_dict = self.measure_function(
