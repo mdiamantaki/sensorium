@@ -8,5 +8,6 @@ services:
     volumes:
       - .:/project
       - ./notebooks:/notebooks
+      - /mnt:/mnt
     environment:
       - JUPYTER_PASSWORD=
