@@ -4,5 +4,6 @@ RUN python3.8 -m pip install --upgrade pip
 RUN python3.8 -m pip --no-cache-dir install hub
 ADD . /project
 RUN python3.8 -m pip install -e /project
+RUN python3.8 -m pip install --no-use-pep517 /project/notebooks/mei
 WORKDIR /notebooks
 
