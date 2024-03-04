@@ -24,3 +24,17 @@ class TrainedModel(TrainedModelBase):
     table_comment = "Trained models"
     nnfabrik = main_nnfabrik
     data_info_table = None 
+
+
+@schema
+class SeedHyper(dj.Manual):
+    definition = """
+    seed:   int     # Random seed that is passed to the model- and dataset-builder
+    """
+    
+
+@schema
+class TrainedHyperModel(TrainedModelBase):
+    nnfabrik = main_nnfabrik
+    seed_table = SeedHyper # add the seed table here
+    data_info_table = None 
